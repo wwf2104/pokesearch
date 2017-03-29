@@ -104,14 +104,18 @@ def simple_find():
 
 @app.route('/advanced/find/name')
 def advance_find():
-    entity = request.form['entity']
-    name = request.form['name']
-    q = a_query.render(ent = entity)
-    things = querylist(q)
-    rows = dict(results = things)
+  entity = request.form['entity']
+  rel = request.form['relations']
+  wants = requests.form['want']
+  group = dict(zip(rel,wants))
+  all_results = []
+  q = a_query.render(ent = entity)
+  things = querylist(q)
+  rows = dict(results = things
 
-    return render_template('advfind.html', **rows)
+  return render_template('advfind.html', **rows)
 
+inter = Template("{{q1}} INTERSECT {{q2}}"}
 tcols = Template("select column_name from w4111.information_schema.columns where table_name like '{{table}}'")
 def getcolumns(tname):
     q = tcols.render(table = tname)

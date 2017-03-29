@@ -1,0 +1,115 @@
+<html>
+<!DOCTYPE html>
+  <title> Results </title>
+  <style>
+    html{
+      margin: 30px;
+      font-family: times new roman;
+    }
+    body{
+      font-size: 13pt;
+    }
+    .search{
+      font-style: italic;
+      text-align: center;
+    }
+    table{
+      background-color: rgb(245,245,245);
+      margin: auto;
+      width: 50%;
+      text-align: left;
+    }
+    tr:hover{background-color:rgb(200,200,200);}
+    td{
+      padding-top: 5px;
+      padding-bottom: 5px;
+      padding-left: 5px;
+    }
+    
+  </style>
+  
+  <script>
+    function back(){
+      setTimeout("window.history.back();", 5000)
+    }
+    function reorder(col,headers) {
+      var table,rows,go,i,x,y,a,b,switching;
+      var colnum = headers.indexOf(col);
+      table = document.getElementById("qresults");
+      go = true;
+      while (go) {
+      rows = table.getElementsByTagName("tr");
+        for (i=1; i < (rows.length - 1); i++) {
+          switching = false;
+          x = rows[i].getElementsByTagName("td")[colnum];
+          y = rows[i+1].getElementsByTagName("td")[colnum];
+          if (isNaN(Number(x.innerHTML))) {
+            if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+              switching = true;
+              break;
+            }
+          }
+          else {
+            a = Number(x.innerHTML);
+            b = Number(y.innerHTML);
+            if (a > b) {
+              switching = true;
+              break;
+            }
+          }
+        }
+        if (switching) {
+          rows[i].parentNode.insertBefore(rows[i+1], rows[i]);
+          go = true;
+        }
+      }
+    }
+  </script>
+
+<header>
+  <h1>Pokemon Database</h1>
+  <h3> Searching The Database: Results </h3>
+</header>
+
+<body>
+{% if (results|length) == 1 %}
+  <p align = "center" text = "20px">
+  NO RESULTS FOUND<br><br>
+  You will be sent back in 5 seconds.</p>
+  <script>back()</script>
+    
+{% else %}
+  <h3> Order By: </h3>
+  {% for col in results[0] %} 
+    <button onclick = "reorder('{{col}}',{{results[0]}})">
+    {% if (col is string) and ('_' in col) %}
+    {{(col|replace('_',' '))|title}}
+    {% else %} {{col|title}} {% endif %}
+    </button>
+  {% endfor %}
+  <br><br><br>
+
+  <table id = "qresults">
+    <tbody>
+    {% for one in results %}
+      <tr>
+      {% for n in range (one|length) %}
+        <td>
+	{% if (one[n] is string) and ('_' in one[n]) %}
+	{{(one[n]|replace('_',' '))|title}}
+	{% else %}{{one[n]|title}}{% endif %}
+	</td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
+
+  <div class = "search">
+    <p><a href="/">Back to Simple Search</a></p>
+    <p><a href="/advanced/">Back to Advanced Search</a></p>
+  </div>
+</body>
+
+</html>
