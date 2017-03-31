@@ -3,7 +3,8 @@
 	<title> Pokemon Search </title>
 	<style>
 	html{
-		margin: 30px;
+		width: 50%;
+		margin: auto;
 		font-family: times;
 	}
 	body{
@@ -24,60 +25,82 @@
 		s.style.display = 'block';
         		a.style.display = 'none';
 	}
+	function add() {
+		var ent = document.getElementById("adv_ent").value;
+		var rel = document.getElementById("requests");
+		{% for each in opts[2] %}
+			if ("{{each}}" == ent) {
+				rel.innerHTML = rel.innerHTML + "<br><br><select name = 'relations'> {% for opt in opts[2][each]%} {% for n in range(opt|length) %} <option value = {{opt[n]}}> {% if '_' in opt[n] %} {{(opt[n]|replace('_',' '))|title}} {% else %}{{opt[n]|title}}  {% endif %}</option> {% endfor %}{% endfor %}</select> <input type = 'search' class = 'search' name = 'want[]' placeholder = 'Search...'>";
+			}
+		{% endfor %}
+	}
+	function swap_rel() {
+		var ent = document.getElementById("adv_ent").value;
+		var rel = document.getElementById("requests");
+		{% for each in opts[2] %}
+			if ("{{each}}" == ent) {
+				rel.innerHTML = "<select name = 'relations'> {% for opt in opts[2][each] %} {% for n in range(opt|length) %} <option value = {{opt[n]}}> {% if '_' in opt[n] %} {{(opt[n]|replace('_',' '))|title}} {% else %} {{opt[n]|title}} {% endif %}</option> {% endfor %} {% endfor %} </select> <input type = 'search' class = 'search' name = 'want[]' placeholder = 'Search...'"
+			}
+		{% endfor %}
+	}
 	</script>
 
 	<body onload = "{{opts[0]}}">
 	<h1> Pokemon Database </h1>
 	<div id = "simple">
 	<h3> Simple Search </h3>
-	<button onclick = "toggle_sa()"> Advanced Search </button>
 	<p> 
-	<form method = "POST" action = "/simple/find/">
+	<form method = "POST" action = "/simple/results/">
 	<b>What are you looking for?</b> <br><br>
 	<select name = "entity">
-    {% for opt in opts[1]%}
-		 <option value = "{{opt}}">
-        {% if '_' in opt %}{{(opt|replace('_',' '))|title}}
-        {% else %}{{opt|title}}
-        {% endif %}
-        </option>
-    {% endfor %}
+	{% for opt in opts[1]%}
+		<option value = "{{opt}}">
+        	{% if '_' in opt %}{{(opt|replace('_',' '))|title}}
+	        {% else %}{{opt|title}}
+        	{% endif %}
+	        </option>
+        {% endfor %}
 	</select>
 	<input type = "search" name = "name" placeholder = "Search...">
 	<input type = "submit" value = "Find">
 	</form>
 	</p>
+	<button onclick = "toggle_sa()"> Advanced Search </button>
 	</div>
 
 	<div id = "advanced">
 	<h3> Advanced Search </h3>
-	<button onclick = "toggle_as()"> Simple Search </button>
 	<p> 
-	<form method = "POST" action = "/advanced/find/">
+	<form method = "POST" action = "/advanced/results/" id = "advsearch">
 	<b>What are you looking for?</b> <br><br>
-	<select name = "entity">
-    {% for opt in opts[1]%}
-		 <option value = "{{opt}}">
-        {% if '_' in opt %}{{(opt|replace('_',' '))|title}}
-        {% else %}{{opt|title}}
-        {% endif %}
-        </option>
-    {% endfor %}
+	<select ud = "adv_ent" name = "entity" onchange = "swap_rel()">
+	{% for opt in opts[1]%}
+		<option value = "{{opt}}">
+        	{% if '_' in opt %}{{(opt|replace('_',' '))|title}}
+        	{% else %}{{opt|title}}
+	        {% endif %}
+        	</option>
+	{% endfor %}
 	</select>
-	<br><br>
-	<select name = "relations">
-    {% for opt in opts[2]%}
-		 <option value = "{{opt}}">
-        {% if '_' in opt %}{{(opt|replace('_',' '))|title}}
-        {% else %}{{opt|title}}
-        {% endif %}
-        </option>
-    {% endfor %}
+	<p id = "requests">
+	<select name = "relations[]">
+	{% for opt in opts[2][opts[1][0] %}
+		{% for n in range(opt|length) %}
+			<option value = "{{opt[n]}}">
+	        	{% if '_' in opt[n] %}{{(opt[n]|replace('_',' '))|title}}
+		        {% else %}{{opt[n]|title}}
+		        {% endif %}
+		        </option>
+		{% endfor %}
+	{% endfor %}
 	</select>
-    <input type = "search" name = "want" placeholder = "Search...">
-    <input type = "submit" value = "Find">
-	</form>
+	<input type = "search" class = "search" name = "want[]" placeholder = "Search...">
 	</p>
+	</form>
+	<button onclick = "add()">Add</button>
+	<input type = "submit" value = "Find">
+	</p>
+	<button onclick = "toggle_as()"> Simple Search </button>
 	</div>
 
 	</body>

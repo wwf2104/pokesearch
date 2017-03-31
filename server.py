@@ -54,10 +54,8 @@ def teardown_request(exception):
     pass
 
 entities = ['pokemon','moves','location','items','characters']
-relations = ['can_find','can_learn','evolves','exists','found_in']
 
 @app.route('/')
-@app.route('/simple/')
 def index():
   """
   request is a special object that Flask provides to access web request information:
@@ -68,18 +66,14 @@ def index():
   """
   # DEBUG: this is debugging code to see what request looks like
   print(request.args)
-  
-#  tquery = ("SELECT TABLE_NAME FROM w4111.INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA LIKE 'jj2882'")
-#  table_opt = querylist(tquery,'table_name')
-#  opts = dict(tables = table_opt)
-  options = ['toggle_as()', entities, relations]
+  options = ['toggle_as()', entities, related()]
   options_dict = dict(opts = options)
 
   return render_template("index.html", **options_dict)
 @app.route('/advanced/')
 def adv_index():
     print(request.args)
-    options = ['toggle_sa()', entities, relations]
+    options = ['toggle_sa()', entities, related()]
     options_dict = dict(opts = options)
     return render_template("index.html", **options_dict)
 
@@ -87,7 +81,7 @@ def adv_index():
 # simple sql queries
 s_query = Template("SELECT * FROM {{ent}} WHERE name_{{ent[0:2]}} LIKE '%{{find.strip(' ')}}%' ORDER BY {{order}}")
 # advanced sql queries
-a_query = Template("SELECT * FROM {{ent}}")
+q_query = Template("SELECT name_{{ent[0:2]}} FROM {{ent}} NATURAL JOIN {{rel}} WHERE {{want}}")
 
 @app.route('/simple/find/', methods = ['GET','POST'])
 def simple_find():
@@ -100,22 +94,35 @@ def simple_find():
   things = [headers]+things
   rows = dict(results = things)
 
-  return render_template('simfind.html', **rows)
+  return render_template('results.html', **rows)
 
 @app.route('/advanced/find/name')
 def advance_find():
   entity = request.form['entity']
-  rel = request.form['relations']
-  wants = requests.form['want']
-  group = dict(zip(rel,wants))
+  relations = request.form['relations[]']
+  wants = request.form['want[]']
+  headers = getcolumns(entity)
   all_results = []
-  q = a_query.render(ent = entity)
-  things = querylist(q)
-  rows = dict(results = things
+  for n in range(len(relations)):
+    q = a_query.render(ent=entity,rel=relations[n],want=wants[n])
+    all_results.append(querylist(q))
+  things = []
+  for each in all_results:
+    if all_results.count(each) == len(wants) and each not in things:
+      things.append(each)
+  rows = dict(results = things)
 
-  return render_template('advfind.html', **rows)
+  return render_template('results.html', **rows)
 
-inter = Template("{{q1}} INTERSECT {{q2}}"}
+trelated = Template("SELECT table_name FROM w4111.information_schema.columns WHERE column_name LIKE 'name_{{ent[0:2}}' AND table_name NOT LIKE '{{ent}}'")
+def related(entlist = ['pokemon','moves','location','items','characters']):
+  rel = {}
+  for e in entlist:
+    q = trelated.render(ent = e)
+    rel[e] = querylist(q)
+
+  return rel
+
 tcols = Template("select column_name from w4111.information_schema.columns where table_name like '{{table}}'")
 def getcolumns(tname):
     q = tcols.render(table = tname)
