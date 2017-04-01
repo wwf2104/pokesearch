@@ -70,18 +70,20 @@ def index():
   options_dict = dict(opts = options)
 
   return render_template("index.html", **options_dict)
+
 @app.route('/advanced/')
 def adv_index():
     print(request.args)
     options = ['toggle_sa()', entities, related()]
     options_dict = dict(opts = options)
-    return render_template("index.html", **options_dict)
 
+    return render_template("index.html", **options_dict)
 
 # simple sql queries
 s_query = Template("SELECT * FROM {{ent}} WHERE name_{{ent[0:2]}} LIKE '%{{find.strip(' ')}}%' ORDER BY {{order}}")
 # advanced sql queries
-q_query = Template("SELECT name_{{ent[0:2]}} FROM {{ent}} NATURAL JOIN {{rel}} WHERE {{want}}")
+q_query = Template("SELECT * FROM {{ent}} NATURAL JOIN (SELECT name_{{ent[0:2]}} FROM {{ent}} NATURAL JOIN {{rel}} WHERE {{col}} LIKE '%{{want}}%') AS FIND")
+int_query = Template("{{q1}} INTERSECT {{q2}}")
 
 @app.route('/simple/find/', methods = ['GET','POST'])
 def simple_find():
@@ -99,27 +101,43 @@ def simple_find():
 @app.route('/advanced/find/name')
 def advance_find():
   entity = request.form['entity']
-  relations = request.form['relations[]']
-  wants = request.form['want[]']
+  relations = request.form.getlist('relations')
+  cols = request.form.getlist('col')
+  wants = request.form.getlist('want')
   headers = getcolumns(entity)
-  all_results = []
-  for n in range(len(relations)):
-    q = a_query.render(ent=entity,rel=relations[n],want=wants[n])
-    all_results.append(querylist(q))
-  things = []
-  for each in all_results:
-    if all_results.count(each) == len(wants) and each not in things:
-      things.append(each)
+  
+  if len(relations) > 1:
+    all_query = []
+    for n in range(len(relations)):
+      q = a_query.render(ent=entity,rel=relations[n],col=cols[n],want=wants[n])
+      all_query.append(a)
+    big_query = all_query[0]
+    for i in range(1, len(all_query)):
+      big_query = int_query.render(q1=big_query, q2=all_query[i])
+    things = querylist(big_query)
+  
+  else:
+    things = querylist(a_query.render(ent=entity,rel=relations[0],want=wants[0]))
+
+  things = [headers]+things
   rows = dict(results = things)
 
   return render_template('results.html', **rows)
 
-trelated = Template("SELECT table_name FROM w4111.information_schema.columns WHERE column_name LIKE 'name_{{ent[0:2}}' AND table_name NOT LIKE '{{ent}}'")
+trelated1 = Template("SELECT table_name FROM w4111.information_schema.columns WHERE column_name LIKE 'name_{{ent[0:2]}}' AND table_name NOT LIKE '{{ent}}'")
+trelated2 = Template(" and column_name not like 'name_{{ent[0:2]}}'")
+
 def related(entlist = ['pokemon','moves','location','items','characters']):
   rel = {}
+  inner_dict = {}
   for e in entlist:
-    q = trelated.render(ent = e)
-    rel[e] = querylist(q)
+    q1 = trelated.render(ent = e)
+    q1_list = querylist(q1)
+    for r in range(len(q1_list)):
+      q2. tcols.render(table = q1_list[r][0])+trelated2.render(ent=e)
+      inner_dict[q1_list[r][0]] = querylist(q2)
+    rel[e] = inner_dict.copy()
+    inner_dict.clear()
 
   return rel
 

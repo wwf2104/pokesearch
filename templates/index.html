@@ -26,23 +26,38 @@
         		a.style.display = 'none';
 	}
 	function add() {
-		var ent = document.getElementById("adv_ent").value;
-		var rel = document.getElementById("requests");
+      		var ent = document.getElementById("adv_ent").value;
+		var swap = document.getElementById("requests");
 		{% for each in opts[2] %}
-			if ("{{each}}" == ent) {
-				rel.innerHTML = rel.innerHTML + "<br><br><select name = 'relations'> {% for opt in opts[2][each]%} {% for n in range(opt|length) %} <option value = {{opt[n]}}> {% if '_' in opt[n] %} {{(opt[n]|replace('_',' '))|title}} {% else %}{{opt[n]|title}}  {% endif %}</option> {% endfor %}{% endfor %}</select> <input type = 'search' class = 'search' name = 'want[]' placeholder = 'Search...'>";
-			}
+		        if ("{{each}}" == ent) {
+			        swap.innerHTML = swap.innerHTML + "<br><br><select name = 'relations'> {% for opt in opts[2][each]%} <option value = {{opt}}> {% if '_' in opt %} {{(opt|replace('_',' '))|title}} {% else %}{{opt|title}} {% endif %}</option> {% endfor %}</select> <select name = 'col' id = 'adv_col'> {% set e = opts[2][each] %} {% for r in e %} {% for c in e[r] %} <option value = '{{c[0]}}'> {% if '_' in c[0] %}{{(c[0]|replace('_',' '))|title}} {% else %}{{c[0]|title}} {% endif %} </option> {% endfor %} {% endfor %} </select> <input type = 'search' class = 'search' name = 'want' placeholder = 'Search...'>";
+        		}
 		{% endfor %}
 	}
 	function swap_rel() {
-		var ent = document.getElementById("adv_ent").value;
-		var rel = document.getElementById("requests");
+      		var ent = document.getElementById("adv_ent").value;
+		var swap = document.getElementById("requests");
 		{% for each in opts[2] %}
-			if ("{{each}}" == ent) {
-				rel.innerHTML = "<select name = 'relations'> {% for opt in opts[2][each] %} {% for n in range(opt|length) %} <option value = {{opt[n]}}> {% if '_' in opt[n] %} {{(opt[n]|replace('_',' '))|title}} {% else %} {{opt[n]|title}} {% endif %}</option> {% endfor %} {% endfor %} </select> <input type = 'search' class = 'search' name = 'want[]' placeholder = 'Search...'"
-			}
+		        if ("{{each}}" == ent) {
+			        swap.innerHTML = "<select name = 'relations'> {% for opt in opts[2][each]%} <option value = {{opt}}> {% if '_' in opt %} {{(opt|replace('_',' '))|title}} {% else %}{{opt|title}} {% endif %}</option> {% endfor %}</select> <select name = 'col' id = 'adv_col'> {% set e = opts[2][each] %} {% for r in e %} {% for c in e[r] %} <option value = '{{c[0]}}'> {% if '_' in c[0] %}{{(c[0]|replace('_',' '))|title}} {% else %}{{c[0]|title}} {% endif %} </option> {% endfor %} {% endfor %} </select> <input type = 'search' class = 'search' name = 'want' placeholder = 'Search...'>";
+        		}
 		{% endfor %}
 	}
+
+	function swap_col() {
+		var ent = document.getElementById("adv_ent").value;
+	        var rel = document.getElementById("adv_rel").value;
+	        var swap = document.getElementById("adv_col");
+	        {% for each in opts[2] %}
+          		if ("{{each}}" == ent) {
+		        {% for next in opts[2][each] %}
+              			if ("{{next}}" == rel) {
+			                swap.innerHTML = "{% set e = opts[2][each] %} {% for c in e[next] %} <option value = '{{c[0]}}'> {% if '_' in c[0] %}{{(c[0]|replace('_',' '))|title}} {% else %}{{c[0]|title}} {% endif %} </option> {% endfor %}";
+              }
+	                {% endfor %}
+         		}
+	        {% endfor %}
+    	}
 	</script>
 
 	<body onload = "{{opts[0]}}">
@@ -83,17 +98,30 @@
 	{% endfor %}
 	</select>
 	<p id = "requests">
-	<select name = "relations[]">
+	<select name = "relations" id = "adv_rel" onchange = "swap_col()">
+		<!-- for related tables of entity chosen -->
 	{% for opt in opts[2][opts[1][0] %}
-		{% for n in range(opt|length) %}
-			<option value = "{{opt[n]}}">
-	        	{% if '_' in opt[n] %}{{(opt[n]|replace('_',' '))|title}}
-		        {% else %}{{opt[n]|title}}
-		        {% endif %}
-		        </option>
-		{% endfor %}
+	<!-- select one of the related tables, opt = name of related table -->
+		<option value = "{{opt[n]}}">
+	        {% if '_' in opt[n] %}{{(opt[n]|replace('_',' '))|title}}
+		{% else %}{{opt[n]|title}}
+		{% endif %}
+		</option>
 	{% endfor %}
 	</select>
+	<select name = "col" id = "adv_col">
+	<!-- for each related table, select one of the columns c -->
+	{% set e = opts[2][opts[1][0]] %}
+	{% for r in e %}
+		{% for c in e[r] %}
+			<option value = "{{c[0]}}">
+	                {% if '_' in c[0] %}{{(c[0]|replace('_',' '))|title}}
+                        {% else %}{{c[0]|title}}
+                        {% endif %}
+                        </option>
+                {% endfor %}
+        {% endfor %}
+        </select>		
 	<input type = "search" class = "search" name = "want[]" placeholder = "Search...">
 	</p>
 	</form>
