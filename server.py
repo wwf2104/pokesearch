@@ -91,6 +91,16 @@ def adv_index():
 
     return render_template("index.html", **options_dict)
 
+@app.route('/datatypes/', methods = ['GET', 'POST'])
+def dtypes():
+  q = "SELECT DISTINCT column_name, data_type FROM INFORMATION_SCHEMA.COLUMNS WHERE table_schema LIKE '%2882'"
+  things = querylist(q)
+  headers = ('Column Name', 'Data Type', 'What to Input')
+  things = [headers]+things
+  dtype_list = dict(results=things)
+
+  return render_template("dtypes.html", **dtype_list)
+
 # simple sql queries
 s_query = Template("SELECT * FROM {{ent}} WHERE name_{{ent[0:2]}} LIKE '%{{find.strip(' ')}}%' ORDER BY {{order}}")
 # advanced sql queries
