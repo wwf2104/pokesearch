@@ -53,6 +53,18 @@ def teardown_request(exception):
   except Exception as e:
     pass
 
+@app.errorhandler(500)
+def error500(error):
+  opts = [500]
+  options_dict = dict(results = opts)
+  return render_template("errors.html", **options_dict)
+
+@app.errorhandler(404)
+def error404(error):
+  opts = [404]
+  options_dict = dict(results = opts)
+  return render_template("errors.html", **options_dict)
+
 entities = ['pokemon','moves','location','items','characters']
 
 @app.route('/')
@@ -82,7 +94,10 @@ def adv_index():
 # simple sql queries
 s_query = Template("SELECT * FROM {{ent}} WHERE name_{{ent[0:2]}} LIKE '%{{find.strip(' ')}}%' ORDER BY {{order}}")
 # advanced sql queries
-q_query = Template("SELECT * FROM {{ent}} NATURAL JOIN (SELECT name_{{ent[0:2]}} FROM {{ent}} NATURAL JOIN {{rel}} WHERE {{col}} LIKE '%{{want}}%') AS FIND")
+a_char_query = Template("SELECT * FROM {{ent}} NATURAL JOIN (SELECT name_{{ent[0:2]}} FROM {{ent}} NATURAL JOIN {{rel}} WHERE {{col}} LIKE '%{{want}}%') AS FIND")
+a_num_query = Template("SELECT * FROM {{ent}} NATURAL JOIN (SELECT name_{{ent[0:2]}} FROM {{ent}} NATURAL JOIN {{rek}} WHERE {{col}} >= {{want}}) AS find")
+a_bool_query = Template("SELECT * FROM {{ent}} NATURAL JOIN (SELECT name_{{ent[0:2]}} FROM {{ent}} NATURAL JOIN {{rel}} WHERE {{col}} = '%{{want}}%') AS find")
+# find intersections
 int_query = Template("{{q1}} INTERSECT {{q2}}")
 
 @app.route('/simple/find/', methods = ['GET','POST'])
@@ -106,23 +121,37 @@ def advance_find():
   wants = request.form.getlist('want')
   headers = getcolumns(entity)
   
+  dtypes = []
+  for c in cols:
+    dtypes.append(getdatatypes(c))
+  col_dtypes = dict(zip(cols,dtypes))
+
   if len(relations) > 1:
     all_query = []
     for n in range(len(relations)):
-      q = a_query.render(ent=entity,rel=relations[n],col=cols[n],want=wants[n])
-      all_query.append(a)
+      q = choosequery(col_dtypes,entity,relations[n],cols[n],wants[n])
+      all_query.append(querylist(q))
+
     big_query = all_query[0]
     for i in range(1, len(all_query)):
-      big_query = int_query.render(q1=big_query, q2=all_query[i])
+      big_query = int_query.render(q1 = big_query, q2 = all_query[i])
     things = querylist(big_query)
-  
   else:
-    things = querylist(a_query.render(ent=entity,rel=relations[0],want=wants[0]))
+    things = choosequery(col_dtypes, entity, relations[0],cols[0],wants[0])
 
   things = [headers]+things
   rows = dict(results = things)
 
   return render_template('results.html', **rows)
+
+def choosequery(e, r, c, w):
+  if col_dtypes[c] in char_types:
+    q = a_char_query.render(ent=e,rel=r,col=c,want=w)
+  elif col_dtypes[c] in num_types:
+    q = a_num_query.render(ent=e,rel=r,col=float(c),want=w)
+  else: # is boolean
+    q = a_bool_query.render(ent=e,rel=r,col=c,want=w)
+  return q
 
 trelated1 = Template("SELECT table_name FROM w4111.information_schema.columns WHERE column_name LIKE 'name_{{ent[0:2]}}' AND table_name NOT LIKE '{{ent}}'")
 trelated2 = Template(" and column_name not like 'name_{{ent[0:2]}}'")
@@ -157,16 +186,6 @@ def querylist(q, cols = None):
             things.append(each)
     cursor.close()
     return things
-
-@app.route('/simple/find/<option>/', methods = ['GET','POST'])
-def s_reorder():
-    reordered = dict()
-    return render_template('simfind.html', **reordered)
-
-@app.route('/advanced/find/<option>/', methods = ['GET','POST'])
-def a_reorder():
-    reordered = dict()
-    return render_template('advfind.html', **reordered)
 
 @app.route('/login')
 def login():

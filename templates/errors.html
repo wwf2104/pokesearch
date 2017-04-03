@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <title> Search Error: {{results[0]}} </title>
+  <style>
+    html{
+      width: 75%;
+      margin: auto;
+      font-family: times;
+      font-size: 20pt;
+    }
+    h3{align: center;}
+  </style>
+
+  <body>
+  {% if results[0] == 500 %}
+      <h1> 500 Error: Your input was incorrect.<br>
+      You will be sent back in 5 seconds. </h1>
+  {% endif %}
+  {% if results[0] == 404 %}
+      <h1> 404 Error: The URL is incorrect. <br>
+      You will be sent back in 5 seconds. </h1>
+  {% endif %}
+  
+  <script> setTimeout("window.history.back();", 5000) </script>
+  
+  </body>
+</html>
