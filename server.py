@@ -58,10 +58,14 @@ def error500(error):
   opts = [500]
   options_dict = dict(results = opts)
   return render_template("errors.html", **options_dict)
-
 @app.errorhandler(404)
 def error404(error):
   opts = [404]
+  options_dict = dict(results = opts)
+  return render_template("errors.html", **options_dict)
+@app.errorhandler(404)
+def error4054(error):
+  opts = [4054]
   options_dict = dict(results = opts)
   return render_template("errors.html", **options_dict)
 
@@ -93,9 +97,9 @@ def adv_index():
 
 @app.route('/datatypes/', methods = ['GET', 'POST'])
 def dtypes():
-  q = "SELECT DISTINCT column_name, data_type FROM INFORMATION_SCHEMA.COLUMNS WHERE table_schema LIKE '%2882'"
+  q = "SELECT DISTINCT table_name,column_name, data_type FROM INFORMATION_SCHEMA.COLUMNS WHERE table_schema LIKE '%2882' ORDER BY table_name"
   things = querylist(q)
-  headers = ('Column Name', 'Data Type', 'What to Input')
+  headers = ('Table Name','Column Name', 'Data Type', 'What to Input')
   things = [headers]+things
   dtype_list = dict(results=things)
 
@@ -104,9 +108,9 @@ def dtypes():
 # simple sql queries
 s_query = Template("SELECT * FROM {{ent}} WHERE name_{{ent[0:2]}} LIKE '%{{find.strip(' ')}}%' ORDER BY {{order}}")
 # advanced sql queries
-a_char_query = Template("SELECT * FROM {{ent}} NATURAL JOIN (SELECT name_{{ent[0:2]}} FROM {{ent}} NATURAL JOIN {{rel}} WHERE {{col}} LIKE '%{{want}}%') AS FIND")
-a_num_query = Template("SELECT * FROM {{ent}} NATURAL JOIN (SELECT name_{{ent[0:2]}} FROM {{ent}} NATURAL JOIN {{rek}} WHERE {{col}} >= {{want}}) AS find")
-a_bool_query = Template("SELECT * FROM {{ent}} NATURAL JOIN (SELECT name_{{ent[0:2]}} FROM {{ent}} NATURAL JOIN {{rel}} WHERE {{col}} = '%{{want}}%') AS find")
+a_char_query = Template("SELECT * FROM {{ent}} NATURAL JOIN (SELECT name_{{ent[0:2]}} FROM {{rel}} WHERE {{col}} LIKE '%{{want}}%') AS FIND")
+a_num_query = Template("SELECT * FROM {{ent}} NATURAL JOIN (SELECT name_{{ent[0:2]}} FROM {{rel}} WHERE {{col}} >= {{want}}) AS find")
+a_bool_query = Template("SELECT * FROM {{ent}} NATURAL JOIN (SELECT name_{{ent[0:2]}} FROM {{rel}} WHERE {{col}} = '%{{want}}%') AS find")
 # find intersections
 int_query = Template("{{q1}} INTERSECT {{q2}}")
 
@@ -123,7 +127,7 @@ def simple_find():
 
   return render_template('results.html', **rows)
 
-@app.route('/advanced/find/name')
+@app.route('/advanced/find/name', methods = ['GET','POST'])
 def advance_find():
   entity = request.form['entity']
   relations = request.form.getlist('relations')
@@ -147,7 +151,8 @@ def advance_find():
       big_query = int_query.render(q1 = big_query, q2 = all_query[i])
     things = querylist(big_query)
   else:
-    things = choosequery(col_dtypes, entity, relations[0],cols[0],wants[0])
+    q = choosequery(col_dtypes, entity, relations[0],cols[0],wants[0])
+    things = querylist(q)
 
   things = [headers]+things
   rows = dict(results = things)
@@ -156,11 +161,11 @@ def advance_find():
 
 def choosequery(e, r, c, w):
   if col_dtypes[c] in char_types:
-    q = a_char_query.render(ent=e,rel=r,col=c,want=w)
+    q = a_char_query.render(ent=e,rel=r,col=c,want=w.lower().capitalize().strip(' '))
   elif col_dtypes[c] in num_types:
-    q = a_num_query.render(ent=e,rel=r,col=float(c),want=w)
+    q = a_num_query.render(ent=e,rel=r,col=c,want=float(w))
   else: # is boolean
-    q = a_bool_query.render(ent=e,rel=r,col=c,want=w)
+    q = a_bool_query.render(ent=e,rel=r,col=c,want=w.lower().capitalize().strip(' '))
   return q
 
 trelated1 = Template("SELECT table_name FROM w4111.information_schema.columns WHERE column_name LIKE 'name_{{ent[0:2]}}' AND table_name NOT LIKE '{{ent}}'")

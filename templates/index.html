@@ -13,6 +13,21 @@
     .search{
       width: 50%;
     }
+    .button{
+      text-align: center;
+      padding: 10px 10px;
+      border: 1px solid rgb(180,180,180);
+      width: 100%;
+    }
+    .button:hover{background-color:rgb(200,200,200);}
+    span{display:flex;}
+    .toggle{
+      text-decoration: bold;
+      text-align: center;
+      padding: 20px 20px;
+      border: 1px solid rgb(180,180,180);
+      width: 100%;
+    }
     </style>
 
     <script>
@@ -20,41 +35,37 @@
         document.getElementById("simple").style.display = 'none';
         document.getElementById("advanced").style.display = 'block';
     }
-    function toggle_as() {
+       function toggle_as() {
         document.getElementById("simple").style.display = 'block';
         document.getElementById("advanced").style.display = 'none';
     }
     function add(){
-        var req = document.getElementById("requests");
-        var pcount = String(req.getElementsByTagName("p").length+1);
-        var first = document.getElementById("p1").innerHTML;
-        var addtext = first.replace(/1/g,pcount);
-        addtext = "<p id = \"p"+pcount+"\">" + addtext + "</p>";
-        req.insertAdjacentHTML("beforeend", addtext);
-        var p = document.getElementById("adv_rel"+pcount);
-        p.value = document.getElementById("adv_rel1").value;
+      var req = document.getElementById("requests");
+      var pcount = String(req.getElementsByTagName("p").length+1);
+      var first = document.getElementById("p1").innerHTML;
+      var addtext = first.replace(/1/g,pcount);
+      addtext = "<p id = \"p"+pcount+"\">" + addtext + "</p>";
+      req.insertAdjacentHTML("beforeend", addtext);
+      var p = document.getElementById("adv_rel"+pcount);
+      p.value = document.getElementById("adv_rel1").value;
     }
     function swap_rel() {
-      var swap = document.getElementById("requests");
       var ent = document.getElementById("adv_ent").value;
+      var swap = document.getElementById("requests");
       {% for each in opts[2] %}
         if ("{{each}}" == ent) {
-          swap.innerHTML = "<div><select name = 'relations' id = 'adv_rel1' \
+          swap.innerHTML = "<p id = 'p1'><select name = 'relations' id = 'adv_rel1' \
           onchange = 'swap_col(this)'> {% for opt in opts[2][each]%} \
-          <option value = {{opt}}> {% if '_' in opt %} \
+          <option value= {{opt}}> {% if '_' in opt %} \
           {{(opt|replace('_',' '))|title}} {% else %}{{opt|title}} \
           {% endif %}</option> {% endfor %}</select> \
-          <select name = 'col' class = 'adv_col1'> {% set e = opts[2][each] %} \
-          {% for r in e %} {% for c in e[r] %} <option value = '{{c[0]}}'> \
-          {% if '_' in c[0] %}{{(c[0]|replace('_',' '))|title}} \
-          {% else %}{{c[0]|title}} {% endif %} </option> {% endfor %} \
-          {% endfor %} </select> \
-          <input type = 'search' class = 'search' name = 'want' placeholder = 'Search...'> \
-          <div>";
+          <select name = 'col' id = 'adv_col1'> </select> \
+          <input type = 'search' class = 'search' name = 'want' placeholder = 'Search...'> </p>";
         }
       {% endfor %}
+      swap_col();
     } 
-    function swap_col(rel) {
+    function swap_col(rel=document.getElementById('adv_rel1')) {
       var ent = document.getElementById("adv_ent").value;
       var swap = rel.nextElementSibling;
       {% for each in opts[2] %}
@@ -62,7 +73,7 @@
             {% for next in opts[2][each] %}
               if ("{{next}}" == rel.value) {
                 swap.innerHTML = "{% set e = opts[2][each] %} \
-                {% for c in e[next] %} <option value = '{{c[0]}}'> \
+                {% for c in e[next] %} <option value='{{c[0]}}'> \
                 {% if '_' in c[0] %}{{(c[0]|replace('_',' '))|title}} \
                 {% else %}{{c[0]|title}} {% endif %} </option> {% endfor %}";
               }
@@ -74,52 +85,52 @@
 
     <!-- opts = [toggle, entities, relations] -->
     <!-- relations = {entity: {related tables: colnames, ...},...} -->
-    <body onload = "{{opts[0]}}">
+    <body onload="{{opts[0]}}; swap_col()">
         <h1> Pokemon Database: Gen 1 Kanto </h1>
-            <form method = "POST" action = "/results/" id = "myq"> </form>
-            <h3> Query Box </h3>
-            Table: <input type = "search" class = "search" name = "h" form = "myq">
-            <br> <textarea rows="8" cols="75" form = "myq" name = "query"></textarea>
-            <br> <input type = "submit" form = "myq" value = "Find"> <br><br>
+            
         <div id = "simple">
-            <h3> Simple Search </h3>
-            <p> <form method = "POST" action = "/simple/results/">
+            <h3> Simple Search: By Name </h3>
+            <p> <form method="POST" action="/simple/results/">
                 <b>What are you looking for?</b> <br><br>
-                <select name = "entity">
+                <select name="entity">
                 {% for opt in opts[1]%}
-                    <option value = "{{opt}}">
+                    <option value="{{opt}}">
                     {% if '_' in opt %}{{(opt|replace('_',' '))|title}}
                     {% else %}{{opt|title}}
                     {% endif %}
                     </option>
                 {% endfor %}
                 </select>
-                <input type = "search" class = "search" name = "name" placeholder = "Search...">
-                <input type = "submit" value = "Find">
+                <input type="search" class="search" name="name" placeholder="Search...">
+                <input type="submit" value="Find">
            </form></p>
-           <button onclick = "toggle_sa()"> Advanced Search </button>
+           <button class="toggle" onclick="toggle_sa()"> Advanced Search </button>
         </div>
 
         <div id = "advanced">
             <h3> Advanced Search </h3>
-            <p> <form method = "POST" action = "/advanced/results/" id = "advsearch">
+            <div> <i> Before you begin, take a look at this cheat sheet </i> <br>
+            <a href="/datatypes/" target="_blank">How to Use the Advanced Search</a> </div>
+            
+            <p> <form method="POST" action="/advanced/results/" id="advsearch">
                 <b>What are you looking for?</b> <br><br>
-                <select id = "adv_ent" name = "entity" onchange = "swap_rel()">
+                <select id="adv_ent" name="entity" onchange="swap_rel()">
                 {% for opt in opts[1]%}
-                    <option value = "{{opt}}">
+                    <option value="{{opt}}">
                     {% if '_' in opt %}{{(opt|replace('_',' '))|title}}
                     {% else %}{{opt|title}}
                     {% endif %}
                     </option>
                 {% endfor %}
                 </select><br>
-                <div id = "requests">
-		    <p id = "p1">
-                    <select name = "relations" id = "adv_rel1" onchange = "swap_col(this)">
+                
+                <div id="requests">
+                    <p id="p1">
+                    <select name="relations" id="adv_rel1" onchange="swap_col(this)">
                     <!-- for related tables of entity chosen -->
                     {% for opt in opts[2][opts[1][0]] %}
                     <!-- select one of the related tables, opt -->
-                        <option value = "{{opt}}">
+                        <option value="{{opt}}">
                         {% if '_' in opt %}{{(opt|replace('_',' '))|title}}
                         {% else %}{{opt|title}}
                         {% endif %}
@@ -127,25 +138,17 @@
                     {% endfor %}
                     </select>
                     <!-- for each related opt, select one of the columns, c -->
-                    <select name = "col" id = "adv_col1">
-                    {% set e = opts[2][opts[1][0]] %} <!-- e = entity -->
-                    {% for r in e %} <!-- for each related table -->
-                        {% for c in e[r] %}
-                            <option value = "{{c[0]}}">
-                            {% if '_' in c[0] %}{{(c[0]|replace('_',' '))|title}}
-                            {% else %}{{c[0]|title}}
-                            {% endif %}
-                            </option>
-                        {% endfor %}
-                    {% endfor %}
+                    <select name="col" id="adv_col1">
                     </select>
-                <input type = "search" class = "search" name = "want" placeholder = "Search...">
-                </p>
+                    <input type="search" class="search" name="want" placeholder="Search...">
+                    </p>
+                </div>
             </form>
-            <button onclick = "add()">Add</button>
-	    <button onclick="swap_rel()">Reset All</button>
-            <input type = "submit" value = "Find" form = "advsearch"> </p>
-            <button onclick = "toggle_as()"> Simple Search </button>
+            <span>
+            <button class="button" onclick="add()">Add</button>
+            <button class="button" onclick="swap_rel()">Reset All</button>
+            <input class="button" type="submit" value="Find" form="advsearch"> </span> </p>
+            <button class="toggle" onclick="toggle_as()"> Simple Search </button>
         </div>
     </body>
 </html>

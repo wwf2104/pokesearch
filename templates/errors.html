@@ -14,14 +14,16 @@
   <body>
   {% if results[0] == 500 %}
       <h1> 500 Error: Your input was incorrect.<br>
-      You will be sent back in 5 seconds. </h1>
-  {% endif %}
-  {% if results[0] == 404 %}
+	you will be sent to the main page in 5 seconds.</h1>
+  {% elif results[0] == 404 %}
       <h1> 404 Error: The URL is incorrect. <br>
-      You will be sent back in 5 seconds. </h1>
+	you will be sent to the main page in 5 seconds.</h1>
+  {% elif results[0] == 405 %}
+      <h1> 405 Error: Issues with methods. <br>
+	you will be sent to the main page in 5 seconds.</h1>
   {% endif %}
   
-  <script> setTimeout("window.history.back();", 5000) </script>
+  <script> setTimeout("location.replace('http://localhost:8111/');", 5000) </script>
   
   </body>
 </html>
