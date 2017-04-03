@@ -20,40 +20,31 @@
         document.getElementById("simple").style.display = 'none';
         document.getElementById("advanced").style.display = 'block';
     }
-       function toggle_as() {
+    function toggle_as() {
         document.getElementById("simple").style.display = 'block';
-       document.getElementById("advanced").style.display = 'none';
+        document.getElementById("advanced").style.display = 'none';
     }
     function add(){
-      var ent = document.getElementById("adv_ent").value;
-      var swap = document.getElementById("requests");
-      var num_req = swap.getElementsByTagName("div").length + 1;
-      {% for each in opts[2] %}
-        if ("{{each}}" == ent) {
-          swap.innerHTML = swap.innerHTML + "<br><br><select name = 'relations'\
-          class = 'adv_rel' onchange = 'swap_col(this)'> \
-          {% for opt in opts[2][each]%} <option value = {{opt}}> \
-          {% if '_' in opt %} {{(opt|replace('_',' '))|title}} \
-          {% else %}{{opt|title}} {% endif %}</option> {% endfor %}</select> \
-          <select name = 'col' class = 'adv_col'> {% set e = opts[2][each] %} \
-          {% for r in e %} {% for c in e[r] %} <option value = '{{c[0]}}'> \
-          {% if '_' in c[0] %}{{(c[0]|replace('_',' '))|title}} \
-          {% else %}{{c[0]|title}} {% endif %} </option> {% endfor %} \
-          {% endfor %} </select> \
-          <input type = 'search' class = 'search' name = 'want' placeholder = 'Search...'>";
-        }
-      {% endfor %}
+        var req = document.getElementById("requests");
+        var pcount = String(req.getElementsByTagName("p").length+1);
+        var first = document.getElementById("p1").innerHTML;
+        var addtext = first.replace(/1/g,pcount);
+        addtext = "<p id = \"p"+pcount+"\">" + addtext + "</p>";
+        req.insertAdjacentHTML("beforeend", addtext);
+        var p = document.getElementById("adv_rel"+pcount);
+        p.value = document.getElementById("adv_rel1").value;
     }
-    function swap_rel(ent) {
+    function swap_rel() {
       var swap = document.getElementById("requests");
+      var ent = document.getElementById("adv_ent").value;
       {% for each in opts[2] %}
         if ("{{each}}" == ent) {
-          swap.innerHTML = "<div><select name = 'relations' class = 'adv_rel' \
+          swap.innerHTML = "<div><select name = 'relations' id = 'adv_rel1' \
           onchange = 'swap_col(this)'> {% for opt in opts[2][each]%} \
           <option value = {{opt}}> {% if '_' in opt %} \
           {{(opt|replace('_',' '))|title}} {% else %}{{opt|title}} \
           {% endif %}</option> {% endfor %}</select> \
-          <select name = 'col' class = 'adv_col'> {% set e = opts[2][each] %} \
+          <select name = 'col' class = 'adv_col1'> {% set e = opts[2][each] %} \
           {% for r in e %} {% for c in e[r] %} <option value = '{{c[0]}}'> \
           {% if '_' in c[0] %}{{(c[0]|replace('_',' '))|title}} \
           {% else %}{{c[0]|title}} {% endif %} </option> {% endfor %} \
@@ -113,7 +104,7 @@
             <h3> Advanced Search </h3>
             <p> <form method = "POST" action = "/advanced/results/" id = "advsearch">
                 <b>What are you looking for?</b> <br><br>
-                <select id = "adv_ent" name = "entity" onchange = "swap_rel(this.value)">
+                <select id = "adv_ent" name = "entity" onchange = "swap_rel()">
                 {% for opt in opts[1]%}
                     <option value = "{{opt}}">
                     {% if '_' in opt %}{{(opt|replace('_',' '))|title}}
@@ -121,9 +112,10 @@
                     {% endif %}
                     </option>
                 {% endfor %}
-                </select>
-                <p id = "requests">
-                    <select name = "relations" class = "adv_rel" onchange = "swap_col(this)">
+                </select><br>
+                <div id = "requests">
+		    <p id = "p1">
+                    <select name = "relations" id = "adv_rel1" onchange = "swap_col(this)">
                     <!-- for related tables of entity chosen -->
                     {% for opt in opts[2][opts[1][0]] %}
                     <!-- select one of the related tables, opt -->
@@ -135,7 +127,7 @@
                     {% endfor %}
                     </select>
                     <!-- for each related opt, select one of the columns, c -->
-                    <select name = "col" class = "adv_col">
+                    <select name = "col" id = "adv_col1">
                     {% set e = opts[2][opts[1][0]] %} <!-- e = entity -->
                     {% for r in e %} <!-- for each related table -->
                         {% for c in e[r] %}
@@ -151,6 +143,7 @@
                 </p>
             </form>
             <button onclick = "add()">Add</button>
+	    <button onclick="swap_rel()">Reset All</button>
             <input type = "submit" value = "Find" form = "advsearch"> </p>
             <button onclick = "toggle_as()"> Simple Search </button>
         </div>
