@@ -55,9 +55,9 @@ def teardown_request(exception):
 
 @app.errorhandler(500)
 def error500(error):
-  opts = [500]
+  opts = [500] + alldtypes()
   options_dict = dict(results = opts)
-  return render_template("errors.html", **options_dict)
+  return render_template("dtypes.html", **options_dict)
 @app.errorhandler(404)
 def error404(error):
   opts = [404]
@@ -97,13 +97,15 @@ def adv_index():
 
 @app.route('/datatypes/', methods = ['GET', 'POST'])
 def dtypes():
+  dtype_list = dict(results = alldtypes())
+  return render_template("dtypes.html", **dtype_list)
+
+def alldtypes():
   q = "SELECT DISTINCT table_name,column_name, data_type FROM INFORMATION_SCHEMA.COLUMNS WHERE table_schema LIKE '%2882' ORDER BY table_name"
   things = querylist(q)
   headers = ('Table Name','Column Name', 'Data Type', 'What to Input')
   things = [headers]+things
-  dtype_list = dict(results=things)
-
-  return render_template("dtypes.html", **dtype_list)
+  return things
 
 # simple sql queries
 s_query = Template("SELECT DISTINCT * FROM {{ent}} WHERE name_{{ent[0:2]}} LIKE '%{{find}}%'")

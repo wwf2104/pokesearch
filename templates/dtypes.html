@@ -1,6 +1,6 @@
-CTYPE html>
+<!DOCTYPE html>
 <html>
-  <title> Results </title>
+  <title> Input Guide </title>
   <style>
     html{
       background-color: rgb(140,140,140);
@@ -40,7 +40,9 @@ CTYPE html>
 
 <header>
   <h1>Pokemon Database</h1>
-  <h3> How to Use the Advanced Search </h3>
+  {% if results[0] == 500 %} <h3 text-align="center" vertical-align="middle">
+   Your input had some issues, take a look at this guide!</h3>
+  {% else %} <h3> How to Use the Advanced Search </h3> {% endif %}
 </header>
 
 <body>
@@ -48,6 +50,7 @@ CTYPE html>
     <tbody>
     {% set char_types = ['character varying', 'text'] %}
     {% set num_types = ['integer', 'double precision', 'smallint'] %}
+    {% if results[0] == 500 %} {% set results = results[1:] %}{% endif %}
     {% for one in results %}
       <tr>
       {% for n in one %}
@@ -60,8 +63,7 @@ CTYPE html>
         {% elif n in num_types %}
           <td>Numeric Input: 
           {% if 'int' not in n %} Between 0 and 1 {% else %} An Integer {% endif %} <br>
-          Search results will be greater than or equal to input <br>
-          Results >= Input </td>
+          Search results will be greater than or equal to your input (Results >= Input) </td>
         {% elif n == 'boolean' %}
           <td>Option 1: True or False <br> Option 2: t or f</td>
         {% endif %}
@@ -79,4 +81,3 @@ CTYPE html>
 </body>
 
 </html>
-
