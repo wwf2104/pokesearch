@@ -1,20 +1,23 @@
-<!DOCTYPE html>
+CTYPE html>
 <html>
   <title> Results </title>
   <style>
     html{
+      background-color: rgb(140,140,140);
+    }
+    body{
+      background-color: white;
       width: 50%;
       margin: auto;
+      border: 50px solid white;
       font-family: times;
-      font-size: 13pt;
+      font-size: 15px;
     }
-    .reorder{
-      cursor: pointer;
-      text-align: center;
-      padding: 10px 10px;
-      border: 1px solid rgb(105,180,200);
-      background-color: rgb(128, 223, 255);
-      font: 15px times;
+    body{
+      width: 50%;
+      margin: auto;
+      font-family: inherit;
+      font-size: 13pt;
     }
     .search{
       font-style: italic;
@@ -28,6 +31,11 @@
     }
     tr:hover{background-color:rgb(200,200,200);}
     tr, td{border: 1px solid rgb(180,180,180);padding: 10px 10px;}
+    tr:first-child{
+      font-weight:bold;
+      text-align: center;
+      vertical-align: middle;
+    }
   </style>
 
 <header>
@@ -50,7 +58,8 @@
         {% if n in char_types %}
           <td>Alphanumeric(String) Input</td>
         {% elif n in num_types %}
-          <td>Numeric Input<br>
+          <td>Numeric Input: 
+          {% if 'int' not in n %} Between 0 and 1 {% else %} An Integer {% endif %} <br>
           Search results will be greater than or equal to input <br>
           Results >= Input </td>
         {% elif n == 'boolean' %}
@@ -70,3 +79,4 @@
 </body>
 
 </html>
+

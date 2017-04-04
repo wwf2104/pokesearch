@@ -1,12 +1,17 @@
-<html>
 <!DOCTYPE html>
+<html>
   <title> Results </title>
   <style>
     html{
+      background-color: rgb(140,140,140);
+    }
+    body{
+      background-color: white;
       width: 50%;
       margin: auto;
-      font-family: times new roman;
-      font-size: 13pt;
+      border: 50px solid white;
+      font-family: times;
+      font-size: 15px;
     }
     .reorder{
       cursor: pointer;
@@ -27,20 +32,27 @@
       border-collapse:collapse;
     }
     tr:hover{background-color:rgb(200,200,200);}
-    tr, td{border: 1px solid rgb(180,180,180);padding: 10px 10px;}   
+    tr, td{border: 1px solid rgb(180,180,180);padding: 10px 5px;}
+    tr:first-child{
+      font-weight:bold;
+      text-align: center;
+      vertical-align: middle;
+    }
   </style>
   
   <script>
     function back(){
       setTimeout("window.history.back();", 5000)
     }
-    function reorder(col,headers) {
-      var table,rows,go,i,x,y,a,b,switching;
+    
+    function reorder(col, headers) {
+      var table, rows, go, i, x, y, a, b, switching;
       var colnum = headers.indexOf(col);
       table = document.getElementById("qresults");
       go = true;
       while (go) {
-      rows = table.getElementsByTagName("tr");
+        go = false;
+        rows = table.getElementsByTagName("tr");
         for (i=1; i < (rows.length - 1); i++) {
           switching = false;
           x = rows[i].getElementsByTagName("td")[colnum];
@@ -75,40 +87,41 @@
 
 <body>
 {% if (results|length) == 1 %}
-  <p align = "center" text = "20px">
+  <p align="center" text="20px">
   NO RESULTS FOUND<br><br>
   You will be sent back in 5 seconds.</p>
   <script>back()</script>
     
 {% else %}
+
   <h3> Order By: </h3>
-  {% for col in results[0] %} 
-    <button onclick = "reorder('{{col}}',{{results[0]}})">
+  {% for col in results[0] %}
+    <button onclick="reorder('{{col}}',{{results[0]}})" class="reorder">
     {% if (col is string) and ('_' in col) %}
     {{(col|replace('_',' '))|title}}
     {% else %} {{col|title}} {% endif %}
     </button>
   {% endfor %}
-  <br><br><br>
 
-  <table id = "qresults">
+  <br><br><br>
+  <table id="qresults">
     <tbody>
     {% for one in results %}
       <tr>
-      {% for n in range (one|length) %}
+      {% for n in one %}
         <td>
-	{% if (one[n] is string) and ('_' in one[n]) %}
-	{{(one[n]|replace('_',' '))|title}}
-	{% else %}{{one[n]|title}}{% endif %}
-	</td>
+        {% if (n is string) and ('_' in n) %}
+        {{(n|replace('_',' '))|title}}
+        {% else %} {{n|title}}{% endif %}
+        </td>
       {% endfor %}
-    </tr>
+      </tr>
     {% endfor %}
     </tbody>
   </table>
 {% endif %}
 
-  <div class = "search">
+  <div class="search">
     <p><a href="/">Back to Simple Search</a></p>
     <p><a href="/advanced/">Back to Advanced Search</a></p>
   </div>

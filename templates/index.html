@@ -1,19 +1,25 @@
-<!DOCTYPE html>
+CTYPE html>
 <html>
     <title> Pokemon Search </title>
     <style>
     html{
-      width: 50%;
-      margin: auto;
-      font-family: times;
+      background-color: rgb(140,140,140);
     }
     body{
-        font-size: 15px;
+      background-color: white;
+      width: 50%;
+      margin: auto;
+      border: 50px solid white;
+      font-family: times;
+      font-size: 15px;
     }
     .search{
       width: 50%;
     }
-    .button{
+    .button, .toggle{
+      font-family: inherit;
+      font-size: inherit;
+      font-weight: bold;
       text-align: center;
       padding: 10px 10px;
       border: 1px solid rgb(180,180,180);
@@ -21,13 +27,6 @@
     }
     .button:hover{background-color:rgb(200,200,200);}
     span{display:flex;}
-    .toggle{
-      text-decoration: bold;
-      text-align: center;
-      padding: 20px 20px;
-      border: 1px solid rgb(180,180,180);
-      width: 100%;
-    }
     </style>
 
     <script>
@@ -48,6 +47,12 @@
       req.insertAdjacentHTML("beforeend", addtext);
       var p = document.getElementById("adv_rel"+pcount);
       p.value = document.getElementById("adv_rel1").value;
+    }
+    function delete_last() {
+      var req = document.getElementById("requests");
+      var pnum = req.children.length;               
+      if (pnum > 1) {req.removeChild(req.lastChild);}
+      else {alert("You cannot remove all of the search bars.");}     
     }
     function swap_rel() {
       var ent = document.getElementById("adv_ent").value;
@@ -146,9 +151,11 @@
             </form>
             <span>
             <button class="button" onclick="add()">Add</button>
+            <button class="button" onclick="delete_last()">Delete Last Row</button>
             <button class="button" onclick="swap_rel()">Reset All</button>
             <input class="button" type="submit" value="Find" form="advsearch"> </span> </p>
             <button class="toggle" onclick="toggle_as()"> Simple Search </button>
         </div>
     </body>
 </html>
+

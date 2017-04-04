@@ -63,9 +63,9 @@ def error404(error):
   opts = [404]
   options_dict = dict(results = opts)
   return render_template("errors.html", **options_dict)
-@app.errorhandler(404)
-def error4054(error):
-  opts = [4054]
+@app.errorhandler(405)
+def error405(error):
+  opts = [405]
   options_dict = dict(results = opts)
   return render_template("errors.html", **options_dict)
 
@@ -106,20 +106,19 @@ def dtypes():
   return render_template("dtypes.html", **dtype_list)
 
 # simple sql queries
-s_query = Template("SELECT * FROM {{ent}} WHERE name_{{ent[0:2]}} LIKE '%{{find.strip(' ')}}%' ORDER BY {{order}}")
+s_query = Template("SELECT DISTINCT * FROM {{ent}} WHERE name_{{ent[0:2]}} LIKE '%{{find}}%'")
 # advanced sql queries
-a_char_query = Template("SELECT * FROM {{ent}} NATURAL JOIN (SELECT name_{{ent[0:2]}} FROM {{rel}} WHERE {{col}} LIKE '%{{want}}%') AS FIND")
-a_num_query = Template("SELECT * FROM {{ent}} NATURAL JOIN (SELECT name_{{ent[0:2]}} FROM {{rel}} WHERE {{col}} >= {{want}}) AS find")
-a_bool_query = Template("SELECT * FROM {{ent}} NATURAL JOIN (SELECT name_{{ent[0:2]}} FROM {{rel}} WHERE {{col}} = '%{{want}}%') AS find")
+a_char_query = Template("SELECT DISTINCT * FROM {{ent}} NATURAL JOIN (SELECT name_{{ent[0:2]}} FROM {{rel}} WHERE {{col}} LIKE '%{{want}}%') AS find")
+a_num_query = Template("SELECT DISTINCT * FROM {{ent}} NATURAL JOIN (SELECT name_{{ent[0:2]}} FROM {{rel}} WHERE {{col}} >= {{want}}) AS find")
+a_bool_query = Template("SELECT DISTINCT * FROM {{ent}} NATURAL JOIN (SELECT name_{{ent[0:2]}} FROM {{rel}} WHERE {{col}} = '%{{want}}%') AS find")
 # find intersections
 int_query = Template("{{q1}} INTERSECT {{q2}}")
 
-@app.route('/simple/find/', methods = ['GET','POST'])
+@app.route('/simple/results/', methods = ['GET','POST'])
 def simple_find():
   entity = request.form['entity']
-  name = request.form['name']
-  orderby = "name_"+entity[0:2]
-  q = s_query.render(ent=entity, find=name, order=orderby)
+  name = request.form['name'].strip(' ')
+  q = s_query.render(ent=entity, find=name)
   things = querylist(q)
   headers = getcolumns(entity)
   things = [headers]+things
@@ -127,31 +126,29 @@ def simple_find():
 
   return render_template('results.html', **rows)
 
-@app.route('/advanced/find/name', methods = ['GET','POST'])
+@app.route('/advanced/results/', methods = ['GET','POST'])
 def advance_find():
   entity = request.form['entity']
   relations = request.form.getlist('relations')
   cols = request.form.getlist('col')
   wants = request.form.getlist('want')
   headers = getcolumns(entity)
-  
-  dtypes = []
-  for c in cols:
-    dtypes.append(getdatatypes(c))
-  col_dtypes = dict(zip(cols,dtypes))
 
   if len(relations) > 1:
     all_query = []
     for n in range(len(relations)):
-      q = choosequery(col_dtypes,entity,relations[n],cols[n],wants[n])
-      all_query.append(querylist(q))
-
+      q = choosequery(entity,relations[n],cols[n],wants[n])
+      all_query.append(q)
+      
     big_query = all_query[0]
     for i in range(1, len(all_query)):
       big_query = int_query.render(q1 = big_query, q2 = all_query[i])
+      print(big_query)
     things = querylist(big_query)
+    
   else:
-    q = choosequery(col_dtypes, entity, relations[0],cols[0],wants[0])
+    q = choosequery(entity, relations[0],cols[0],wants[0])
+    print(q)
     things = querylist(q)
 
   things = [headers]+things
@@ -159,26 +156,34 @@ def advance_find():
 
   return render_template('results.html', **rows)
 
+tdtype = Template("SELECT data_type FROM INFORMATION_SCHEMA.COLUMNS WHERE column_name LIKE '{{column}}'")
+def getdatatypes(col):
+    q = tdtype.render(column=col)
+    dtype = querylist(q)[0][0]
+    return dtype
+
+char_types = ['character varying', 'text']
+num_types = ['integer', 'double precision', 'smallint']
 def choosequery(e, r, c, w):
-  if col_dtypes[c] in char_types:
+  if getdatatypes(c) in char_types:
     q = a_char_query.render(ent=e,rel=r,col=c,want=w.lower().capitalize().strip(' '))
-  elif col_dtypes[c] in num_types:
+  elif getdatatypes(c) in num_types:
     q = a_num_query.render(ent=e,rel=r,col=c,want=float(w))
   else: # is boolean
     q = a_bool_query.render(ent=e,rel=r,col=c,want=w.lower().capitalize().strip(' '))
   return q
 
-trelated1 = Template("SELECT table_name FROM w4111.information_schema.columns WHERE column_name LIKE 'name_{{ent[0:2]}}' AND table_name NOT LIKE '{{ent}}'")
+trelated1 = Template("SELECT table_name FROM w4111.information_schema.columns WHERE column_name LIKE 'name_{{ent[0:2]}}'")
 trelated2 = Template(" and column_name not like 'name_{{ent[0:2]}}'")
 
 def related(entlist = ['pokemon','moves','location','items','characters']):
   rel = {}
   inner_dict = {}
   for e in entlist:
-    q1 = trelated.render(ent = e)
+    q1 = trelated1.render(ent = e)
     q1_list = querylist(q1)
     for r in range(len(q1_list)):
-      q2.tcols.render(table = q1_list[r][0])+trelated2.render(ent=e)
+      q2 = tcols.render(table = q1_list[r][0])+trelated2.render(ent=e)
       inner_dict[q1_list[r][0]] = querylist(q2)
     rel[e] = inner_dict.copy()
     inner_dict.clear()
