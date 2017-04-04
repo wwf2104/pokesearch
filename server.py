@@ -178,7 +178,7 @@ def related(entlist = ['pokemon','moves','location','items','characters']):
     q1 = trelated.render(ent = e)
     q1_list = querylist(q1)
     for r in range(len(q1_list)):
-      q2. tcols.render(table = q1_list[r][0])+trelated2.render(ent=e)
+      q2.tcols.render(table = q1_list[r][0])+trelated2.render(ent=e)
       inner_dict[q1_list[r][0]] = querylist(q2)
     rel[e] = inner_dict.copy()
     inner_dict.clear()
