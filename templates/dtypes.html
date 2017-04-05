@@ -36,16 +36,50 @@
       text-align: center;
       vertical-align: middle;
     }
+    #topbtn{
+      display: none;
+      position: fixed;
+      bottom: 40px;
+      right: 40px;
+      z-index: 99;
+      border: none;
+      outline: none;
+      background-color: rgb(100,100,100);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      padding: 15px;
+      border-radius: 10px;
+    }
+    #topbtn:hover{background-color:rgb(50,50,50);}
   </style>
-
+<head>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
 <header>
   <h1>Pokemon Database</h1>
-  {% if results[0] == 500 %} <h3 text-align="center" vertical-align="middle">
+  {% if results[0] == 500 %} <h3 text-align="center" vertical-align="middle" id="top">
    Your input had some issues, take a look at this guide!</h3>
-  {% else %} <h3> How to Use the Advanced Search </h3> {% endif %}
+  {% else %} <h3 id="top"> How to Use the Advanced Search </h3> {% endif %}
 </header>
 
 <body>
+  <script>
+  window.onscroll = function() {scrollFunction()};
+  
+  function scrollFunction() {
+      if (document.body.scrollTop > 30 || document.documentElement.scrollTop > 30) {
+          document.getElementById("topbtn").style.display = "block";
+      } else {
+          document.getElementById("topbtn").style.display = "none";
+      }
+  }
+
+  function topFunction() {
+      document.body.scrollTop = 0;
+      document.documentElement.scrollTop = 0;
+  }
+    </script>
   <table>
     <tbody>
     {% set char_types = ['character varying', 'text'] %}
@@ -73,7 +107,8 @@
     {% endfor %}
     </tbody>
   </table>
-
+  <button onclick="topFunction()" id="topbtn"> <i class="material-icons">navigation</i> </button>
+                        
   <div class="search">
     <p align="center"><a href="/">Back to Simple Search</a></p>
     <p align="center"><a href="/advanced/">Back to Advanced Search</a></p>

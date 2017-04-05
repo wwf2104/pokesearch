@@ -21,6 +21,7 @@
       background-color: rgb(128, 223, 255);
       font: 15px times;
     }
+    .reorder:hover{background-color:rgb(105,180,200)}
     .search{
       font-style: italic;
       text-align: center;
@@ -38,7 +39,27 @@
       text-align: center;
       vertical-align: middle;
     }
+    #topbtn{
+      display: none;
+      position: fixed;
+      bottom: 40px;
+      right: 40px;
+      z-index: 99;
+      border: none;
+      outline: none;
+      background-color: rgb(100,100,100);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      padding: 15px;
+      border-radius: 10px;
+    }
+    #topbtn:hover{background-color:rgb(50,50,50);}
   </style>
+
+<head>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
   
   <script>
     function back(){
@@ -83,6 +104,7 @@
 <header>
   <h1>Pokemon Database</h1>
   <h3> Searching The Database: Results </h3>
+  <h4> {{results|length-1}} Results Found </h4>
 </header>
 
 <body>
@@ -93,6 +115,22 @@
   <script>back()</script>
     
 {% else %}
+  <script>
+  window.onscroll = function() {scrollFunction()};
+  
+  function scrollFunction() {
+      if (document.body.scrollTop > 30 || document.documentElement.scrollTop > 30) {
+          document.getElementById("topbtn").style.display = "block";
+      } else {
+          document.getElementById("topbtn").style.display = "none";
+      }
+  }
+
+  function topFunction() {
+      document.body.scrollTop = 0;
+      document.documentElement.scrollTop = 0;
+  }
+    </script>
 
   <h3> Order By: </h3>
   {% for col in results[0] %}
@@ -120,7 +158,7 @@
     </tbody>
   </table>
 {% endif %}
-
+  <button onclick="topFunction()" id="topbtn"> <i class="material-icons">navigation</i> </button>
   <div class="search">
     <p><a href="/">Back to Simple Search</a></p>
     <p><a href="/advanced/">Back to Advanced Search</a></p>

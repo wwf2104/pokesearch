@@ -138,7 +138,7 @@ def advance_find():
 
   if len(relations) > 1:
     all_query = []
-    for n in range(len(relations)):
+    for n in range(len(relations)): 
       q = choosequery(entity,relations[n],cols[n],wants[n])
       all_query.append(q)
       
