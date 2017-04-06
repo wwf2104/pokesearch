@@ -124,7 +124,7 @@ int_query = Template("{{q1}} INTERSECT {{q2}}")
 @app.route('/simple/results/', methods = ['GET','POST'])
 def simple_find():
   entity = request.form['entity']
-  name = request.form['name'].strip(' ')
+  name = request.form['name'].lower().capitalize.strip(' ');
   q = s_query.render(ent=entity, find=name)
   things = querylist(q)
   headers = getcolumns(entity)
@@ -150,12 +150,10 @@ def advance_find():
     big_query = all_query[0]
     for i in range(1, len(all_query)):
       big_query = int_query.render(q1 = big_query, q2 = all_query[i])
-      print(big_query)
     things = querylist(big_query)
     
   else:
     q = choosequery(entity, relations[0],cols[0],wants[0])
-    print(q)
     things = querylist(q)
 
   things = [headers]+things
