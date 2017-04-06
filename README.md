@@ -1,6 +1,6 @@
 1. Database is on jj2882 account
 
-2. The URL of your web application.
+2. 104.196.209.24:8111
 
 3. A description of the parts of your original proposal in Part 1 that you implemented, the parts you did not (which hopefully is nothing or something very small), and possibly new features that were not included in the proposal and that you implemented anyway. If you did not implement some part of the proposal in Part 1, explain why.
 
