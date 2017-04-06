@@ -120,11 +120,14 @@ a_num_query = Template("SELECT DISTINCT * FROM {{ent}} NATURAL JOIN (SELECT name
 a_bool_query = Template("SELECT DISTINCT * FROM {{ent}} NATURAL JOIN (SELECT name_{{ent[0:2]}} FROM {{rel}} WHERE {{col}} = '%{{want}}%') AS find")
 # find intersections
 int_query = Template("{{q1}} INTERSECT {{q2}}")
+natjoin = Template("({{t1}} NATURAL JOIN {{t2}})")
+select_col = Template("{{c1}}, {{c2}}")
+fresults = Template("SELECT DISTINCT name_{{ent[0:2]}} {{rel}} FROM ({{tables}}) as J WHERE name_{{ent[0:2]}} in {{results}}")
 
 @app.route('/simple/results/', methods = ['GET','POST'])
 def simple_find():
   entity = request.form['entity']
-  name = request.form['name'].lower().capitalize.strip(' ');
+  name = request.form['name'].lower().capitalize().strip(' ')
   q = s_query.render(ent=entity, find=name)
   things = querylist(q)
   headers = getcolumns(entity)
@@ -143,18 +146,40 @@ def advance_find():
 
   if len(relations) > 1:
     all_query = []
+    joined = entity
+    choose_col = ''
+    headers = ['name_'+entity[0:2]]
     for n in range(len(relations)): 
       q = choosequery(entity,relations[n],cols[n],wants[n])
       all_query.append(q)
-      
+      if relations[n] not in joined:
+          joined = natjoin.render(t1=joined, t2=relations[n])
+      if cols[n] not in choose_col:
+          choose_col = select_col.render(c1=choose_col, c2=cols[n])
+      headers.append(cols[n])
+    
+    headers = set(headers)
     big_query = all_query[0]
     for i in range(1, len(all_query)):
       big_query = int_query.render(q1 = big_query, q2 = all_query[i])
-    things = querylist(big_query)
+    
+    things = querylist(big_query, 'name_'+entity[0:2])
+    if len(things) > 1:
+        things = tuple(querylist(big_query, 'name_'+entity[0:2]))
+    else:
+        things = "('"+(tuple(things)[0])+"')"
+    things = querylist(fresults.render(tables=joined, rel=choose_col, ent=entity, results=things))
     
   else:
     q = choosequery(entity, relations[0],cols[0],wants[0])
-    things = querylist(q)
+    joined = natjoin.render(t1=entity, t2=relations[0])
+    choose_col = select_col.render(c1=choose_col, c2=col[0])
+    if len(things) > 1:
+        things = tuple(querylist(big_query, 'name_'+entity[0:2]))
+    else:
+        things = "('"+(tuple(things)[0])+"')"
+    things = querylist(fresults.render(tables=joined, rel=choose_col, ent=entity, results=things))
+    headers = set(headers + cols[0])
 
   things = [headers]+things
   rows = dict(results = things)
