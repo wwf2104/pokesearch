@@ -3,13 +3,18 @@
   <title> Results </title>
   <style>
     html{
-      background-color: rgb(140,140,140);
+        background-image: url("/static/pokebackground.jpg");
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        background-position: center;
+        background-size: cover;
     }
+    #bodyoutline{border: 1px solid black; padding: 50px;}
     body{
       background-color: white;
       width: 50%;
       margin: auto;
-      border: 50px solid white;
+      border: 10px solid white;
       font-family: times;
       font-size: 15px;
     }
@@ -47,14 +52,14 @@
       z-index: 99;
       border: none;
       outline: none;
-      background-color: rgb(100,100,100);
+      background-color: rgb(75,75,75);
       color: white;
       font-weight: bold;
       cursor: pointer;
       padding: 15px;
       border-radius: 10px;
     }
-    #topbtn:hover{background-color:rgb(50,50,50);}
+    #topbtn:hover{background-color:rgb(25,25,25);}
   </style>
 
 <head>
@@ -65,8 +70,9 @@
     function back(){
       setTimeout("window.history.back();", 5000)
     }
-    
     function reorder(col, headers) {
+      if ({{results|length-1}} > 100) {
+          alert("You've quite a lot of results - this may take a few seconds");}
       var table, rows, go, i, x, y, a, b, switching;
       var colnum = headers.indexOf(col);
       table = document.getElementById("qresults");
@@ -101,6 +107,7 @@
     }
   </script>
 
+<div id="bodyoutline">
 <header>
   <h1>Pokemon Database</h1>
   <h3> Searching The Database: Results </h3>
@@ -164,5 +171,6 @@
     <p><a href="/advanced/">Back to Advanced Search</a></p>
   </div>
 </body>
+</div>
 
 </html>

@@ -3,6 +3,11 @@
   <title> Search Error: {{results[0]}} </title>
   <style>
     html{
+      background-image: url("/static/pokebackground.jpg");
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      background-position: center;
+      background-size: cover;
       margin: auto;
       font-family: times;
       font-size: 20pt;
@@ -27,8 +32,13 @@
       <h3> Enjoy this gif in that time! </h3>
       <img src="http://media2.giphy.com/media/Pok6284jGzyGA/giphy.gif" alt="sad pikachu gif" style="width: 50%;height:50%;">
       <script> setTimeout("location.replace('http://localhost:8111/');", 10000) </script>
-  {% endif %}
-  
+  {% elif results[0] == 408 %}
+      <h1> Your results took too long to get - sorry, try again later!<br>
+      You will be sent to the main page in 10 seconds. </h1>
+      <h3> Enjoy this gif in that time! </h3>
+      <img src="http://media2.giphy.com/media/Pok6284jGzyGA/giphy.gif" alt="sad pikachu gif" style="width: 50%;height:50%;">
+      <script> setTimeout("location.replace('http://localhost:8111/');", 10000) </script>
+  {% endif %} 
 
   
   </body>

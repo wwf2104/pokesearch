@@ -68,6 +68,11 @@ def error405(error):
   opts = [405]
   options_dict = dict(results = opts)
   return render_template("errors.html", **options_dict)
+@app.errorhandler(408)
+def error408(error):
+    opts = [408]
+    options_dict = dict(results = opts)
+    return render_template("errors.html", **options_dict)
 
 entities = ['pokemon','moves','location','items','characters']
 

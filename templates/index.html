@@ -3,20 +3,30 @@
     <title> Pokemon Search </title>
     <style>
     html{
-      background-color: rgb(140,140,140);
+        background-image: url("/static/pokebackground.jpg");
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        background-position: center;
+        background-size: cover;
     }
+    #bodyoutline{border: 1px solid black; padding: 50px;}
     body{
       background-color: white;
       width: 50%;
       margin: auto;
-      border: 50px solid white;
+      border: 10px solid white;
       font-family: times;
       font-size: 15px;
     }
-    .search{
-      width: 50%;
+    img{height: 80px; max-width: 100%;}
+    select, .searchbar{
+      width: 20%;
+      padding: 10px 10px;
+      background-color: #FFFFFF;
     }
-    .button, .toggle{
+    option{padding: 10px 10px;}
+    .searchbar{width: 50%;}
+    .button, .sfindbtn{
       font-family: inherit;
       font-size: inherit;
       font-weight: bold;
@@ -25,18 +35,18 @@
       border: 1px solid rgb(180,180,180);
       width: 100%;
     }
-    .button:hover{background-color:rgb(200,200,200);}
+    .sfindbtn{width: 15%;}
+    .button:hover,.sfindbtn:hover{background-color:rgb(200,200,200);}
     span{display:flex;}
     </style>
-
     <script>
     function toggle_sa() {
-        document.getElementById("simple").style.display = 'none';
-        document.getElementById("advanced").style.display = 'block';
+        document.getElementById("simple").style.display = "none";
+        document.getElementById("advanced").style.display = "block";
     }
-       function toggle_as() {
-        document.getElementById("simple").style.display = 'block';
-        document.getElementById("advanced").style.display = 'none';
+    function toggle_as() {
+        document.getElementById("simple").style.display = "block";
+        document.getElementById("advanced").style.display = "none";
     }
     function add(){
       var req = document.getElementById("requests");
@@ -59,13 +69,13 @@
       var swap = document.getElementById("requests");
       {% for each in opts[2] %}
         if ("{{each}}" == ent) {
-          swap.innerHTML = "<p id = 'p1'><select name = 'relations' id = 'adv_rel1' \
-          onchange = 'swap_col(this)'> {% for opt in opts[2][each]%} \
-          <option value= {{opt}}> {% if '_' in opt %} \
+          swap.innerHTML = "<p id='p1'><select name='relations' id='adv_rel1' \
+          onchange='swap_col(this)'> {% for opt in opts[2][each]%} \
+          <option value={{opt}}> {% if '_' in opt %} \
           {{(opt|replace('_',' '))|title}} {% else %}{{opt|title}} \
           {% endif %}</option> {% endfor %}</select> \
-          <select name = 'col' id = 'adv_col1'> </select> \
-          <input type = 'search' class = 'search' name = 'want' placeholder = 'Search...'> </p>";
+          <select name='col' id='adv_col1'> </select> \
+          <input type='search' class='search' name='want' placeholder='Search...'> </p>";
         }
       {% endfor %}
       swap_col();
@@ -90,11 +100,14 @@
 
     <!-- opts = [toggle, entities, relations] -->
     <!-- relations = {entity: {related tables: colnames, ...},...} -->
-    <body onload="{{opts[0]}}; swap_col()">
+    <div id="bodyoutline">
+    <body onload="{{opts[0]}}; swap_col();">
         <h1> Pokemon Database: Gen 1 Kanto </h1>
+        <img src="/static/pokemon_logo.png" alt="pokemon logo"></img>
             
         <div id = "simple">
             <h3> Simple Search: By Name </h3>
+            <i> * Note that you can look at all the elements in each group by searching without input </i>
             <p> <form method="POST" action="/simple/results/">
                 <b>What are you looking for?</b> <br><br>
                 <select name="entity">
@@ -106,10 +119,10 @@
                     </option>
                 {% endfor %}
                 </select>
-                <input type="search" class="search" name="name" placeholder="Search...">
-                <input type="submit" value="Find">
+                <input type="search" class="searchbar" name="name" placeholder="Search...">
+                <input type="submit" class="sfindbtn" value="Find">
            </form></p>
-           <button class="toggle" onclick="toggle_sa()"> Advanced Search </button>
+           <button class="button" onclick="toggle_sa()"> Advanced Search </button>
         </div>
 
         <div id = "advanced">
@@ -145,16 +158,17 @@
                     <!-- for each related opt, select one of the columns, c -->
                     <select name="col" id="adv_col1">
                     </select>
-                    <input type="search" class="search" name="want" placeholder="Search...">
+                    <input type="search" class="searchbar" name="want" placeholder="Search...">
                     </p>
                 </div>
             </form>
             <span>
-            <button class="button" onclick="add()">Add</button>
-            <button class="button" onclick="delete_last()">Delete Last Row</button>
-            <button class="button" onclick="swap_rel()">Reset All</button>
-            <input class="button" type="submit" value="Find" form="advsearch"> </span> </p>
-            <button class="toggle" onclick="toggle_as()"> Simple Search </button>
+            <button class="button" onclick="add()">Add (+) </button>
+            <button class="button" onclick="delete_last()">Delete Last Row (-)</button>
+            <button class="button" onclick="swap_rel()">Reset All</button> </span> <br>
+            <input class="button" type="submit" value="Find" form="advsearch"> </p>
+            <button class="button" onclick="toggle_as()"> Simple Search </button>
         </div>
     </body>
+    </div>
 </html>
