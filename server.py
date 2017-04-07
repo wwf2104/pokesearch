@@ -115,19 +115,16 @@ def alldtypes():
 # simple sql queries
 s_query = Template("SELECT DISTINCT * FROM {{ent}} WHERE name_{{ent[0:2]}} LIKE '%{{find}}%'")
 # advanced sql queries
-a_char_query = Template("SELECT DISTINCT * FROM {{ent}} NATURAL JOIN (SELECT name_{{ent[0:2]}} FROM {{rel}} WHERE {{col}} LIKE '%{{want}}%') AS find")
-a_num_query = Template("SELECT DISTINCT * FROM {{ent}} NATURAL JOIN (SELECT name_{{ent[0:2]}} FROM {{rel}} WHERE {{col}} >= {{want}}) AS find")
-a_bool_query = Template("SELECT DISTINCT * FROM {{ent}} NATURAL JOIN (SELECT name_{{ent[0:2]}} FROM {{rel}} WHERE {{col}} = '%{{want}}%') AS find")
+a_char_query = Template("SELECT DISTINCT {{heads}} FROM {{ent}} NATURAL JOIN (SELECT name_{{ent[0:2]}} FROM {{rel}} WHERE {{col}} LIKE '%{{want}}%') AS find")
+a_num_query = Template("SELECT DISTINCT {{heads}} FROM {{ent}} NATURAL JOIN (SELECT name_{{ent[0:2]}} FROM {{rel}} WHERE {{col}} >= {{want}}) AS find")
+a_bool_query = Template("SELECT DISTINCT {{heads}} FROM {{ent}} NATURAL JOIN (SELECT name_{{ent[0:2]}} FROM {{rel}} WHERE {{col}} = '%{{want}}%') AS find")
 # find intersections
 int_query = Template("{{q1}} INTERSECT {{q2}}")
-natjoin = Template("({{t1}} NATURAL JOIN {{t2}})")
-select_col = Template("{{c1}}, {{c2}}")
-fresults = Template("SELECT DISTINCT name_{{ent[0:2]}} {{rel}} FROM ({{tables}}) as J WHERE name_{{ent[0:2]}} in {{results}}")
 
 @app.route('/simple/results/', methods = ['GET','POST'])
 def simple_find():
   entity = request.form['entity']
-  name = request.form['name'].lower().capitalize().strip(' ')
+  name = request.form['name'].strip().lower().capitalize();
   q = s_query.render(ent=entity, find=name)
   things = querylist(q)
   headers = getcolumns(entity)
@@ -143,43 +140,24 @@ def advance_find():
   cols = request.form.getlist('col')
   wants = request.form.getlist('want')
   headers = getcolumns(entity)
+  head = ','.join(headers)
 
   if len(relations) > 1:
     all_query = []
-    joined = entity
-    choose_col = ''
-    headers = ['name_'+entity[0:2]]
     for n in range(len(relations)): 
-      q = choosequery(entity,relations[n],cols[n],wants[n])
+      q = choosequery(head, entity,relations[n],cols[n],wants[n])
       all_query.append(q)
-      if relations[n] not in joined:
-          joined = natjoin.render(t1=joined, t2=relations[n])
-      if cols[n] not in choose_col:
-          choose_col = select_col.render(c1=choose_col, c2=cols[n])
-      headers.append(cols[n])
-    
-    headers = set(headers)
+      
     big_query = all_query[0]
     for i in range(1, len(all_query)):
       big_query = int_query.render(q1 = big_query, q2 = all_query[i])
-    
-    things = querylist(big_query, 'name_'+entity[0:2])
-    if len(things) > 1:
-        things = tuple(querylist(big_query, 'name_'+entity[0:2]))
-    else:
-        things = "('"+(tuple(things)[0])+"')"
-    things = querylist(fresults.render(tables=joined, rel=choose_col, ent=entity, results=things))
+    print(big_query)
+    things = querylist(big_query)
+    print(things)
     
   else:
-    q = choosequery(entity, relations[0],cols[0],wants[0])
-    joined = natjoin.render(t1=entity, t2=relations[0])
-    choose_col = select_col.render(c1=choose_col, c2=col[0])
-    if len(things) > 1:
-        things = tuple(querylist(big_query, 'name_'+entity[0:2]))
-    else:
-        things = "('"+(tuple(things)[0])+"')"
-    things = querylist(fresults.render(tables=joined, rel=choose_col, ent=entity, results=things))
-    headers = set(headers + cols[0])
+    q = choosequery(head, entity, relations[0],cols[0],wants[0])
+    things = querylist(q)
 
   things = [headers]+things
   rows = dict(results = things)
@@ -194,13 +172,13 @@ def getdatatypes(col):
 
 char_types = ['character varying', 'text']
 num_types = ['integer', 'double precision', 'smallint']
-def choosequery(e, r, c, w):
+def choosequery(h, e, r, c, w):
   if getdatatypes(c) in char_types:
-    q = a_char_query.render(ent=e,rel=r,col=c,want=w.lower().capitalize().strip(' '))
+    q = a_char_query.render(heads = h,ent=e,rel=r,col=c,want=w.strip().lower().capitalize())
   elif getdatatypes(c) in num_types:
-    q = a_num_query.render(ent=e,rel=r,col=c,want=float(w))
+    q = a_num_query.render(heads = h,ent=e,rel=r,col=c,want=float(w))
   else: # is boolean
-    q = a_bool_query.render(ent=e,rel=r,col=c,want=w.lower().capitalize().strip(' '))
+    q = a_bool_query.render(heads = h,ent=e,rel=r,col=c,want=w.strip().lower().capitalize())
   return q
 
 trelated1 = Template("SELECT table_name FROM w4111.information_schema.columns WHERE column_name LIKE 'name_{{ent[0:2]}}'")
