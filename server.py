@@ -113,18 +113,18 @@ def alldtypes():
   return things
 
 # simple sql queries
-s_query = Template("SELECT DISTINCT * FROM {{ent}} WHERE name_{{ent[0:2]}} LIKE '%{{find}}%'")
+s_query = Template("SELECT DISTINCT * FROM {{ent}} WHERE LOWER(name_{{ent[0:2]}}) LIKE LOWER('%{{find}}%')")
 # advanced sql queries
-a_char_query = Template("SELECT DISTINCT {{heads}} FROM {{ent}} NATURAL JOIN (SELECT name_{{ent[0:2]}} FROM {{rel}} WHERE {{col}} LIKE '%{{want}}%') AS find")
+a_char_query = Template("SELECT DISTINCT {{heads}} FROM {{ent}} NATURAL JOIN (SELECT name_{{ent[0:2]}} FROM {{rel}} WHERE LOWER({{col}}) LIKE LOWER('%{{want}}%')) AS find")
 a_num_query = Template("SELECT DISTINCT {{heads}} FROM {{ent}} NATURAL JOIN (SELECT name_{{ent[0:2]}} FROM {{rel}} WHERE {{col}} >= {{want}}) AS find")
-a_bool_query = Template("SELECT DISTINCT {{heads}} FROM {{ent}} NATURAL JOIN (SELECT name_{{ent[0:2]}} FROM {{rel}} WHERE {{col}} = '%{{want}}%') AS find")
+a_bool_query = Template("SELECT DISTINCT {{heads}} FROM {{ent}} NATURAL JOIN (SELECT name_{{ent[0:2]}} FROM {{rel}} WHERE LOWER({{col}}) = LOWER('%{{want}}%')) AS find")
 # find intersections
 int_query = Template("{{q1}} INTERSECT {{q2}}")
 
 @app.route('/simple/results/', methods = ['GET','POST'])
 def simple_find():
   entity = request.form['entity']
-  name = request.form['name'].strip().lower().capitalize();
+  name = request.form['name'].strip().capitalize();
   q = s_query.render(ent=entity, find=name)
   things = querylist(q)
   headers = getcolumns(entity)
@@ -174,11 +174,11 @@ char_types = ['character varying', 'text']
 num_types = ['integer', 'double precision', 'smallint']
 def choosequery(h, e, r, c, w):
   if getdatatypes(c) in char_types:
-    q = a_char_query.render(heads = h,ent=e,rel=r,col=c,want=w.strip().lower().capitalize())
+    q = a_char_query.render(heads = h,ent=e,rel=r,col=c,want=w.strip().capitalize())
   elif getdatatypes(c) in num_types:
     q = a_num_query.render(heads = h,ent=e,rel=r,col=c,want=float(w))
   else: # is boolean
-    q = a_bool_query.render(heads = h,ent=e,rel=r,col=c,want=w.strip().lower().capitalize())
+    q = a_bool_query.render(heads = h,ent=e,rel=r,col=c,want=w.strip().capitalize())
   return q
 
 trelated1 = Template("SELECT table_name FROM w4111.information_schema.columns WHERE column_name LIKE 'name_{{ent[0:2]}}'")
